@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import path from "path";
 
+import { types } from "../../../src/config";
 import { BuidlerContext } from "../../../src/internal/context";
 import { ERRORS } from "../../../src/internal/core/errors-list";
 import { Environment } from "../../../src/internal/core/runtime-environment";
@@ -65,6 +66,11 @@ describe("Environment", () => {
     dsl.task("example", async ret => {
       return 27;
     });
+
+    dsl
+      .task("complexExample", "a complex example task")
+      .addOptionalParam("one-opt", types.boolean);
+
     tasks = ctx.tasksDSL.getTaskDefinitions();
 
     env = new Environment(config, args, tasks);
