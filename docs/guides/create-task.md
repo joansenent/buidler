@@ -271,6 +271,8 @@ Task override order is important since actions can only call the immediately pre
 
 Overriding built-in tasks is a great way to customize and extend Buidler. To know which tasks to override, take a look at [src/builtin-tasks](https://github.com/nomiclabs/buidler/tree/master/packages/buidler-core/src/builtin-tasks).
 
+<<< @/../packages/buidler-core/src/builtin-tasks/task-names.ts
+
 #### The `runSuper` function
 
 `runSuper` is a function available to override task's actions. It can be received as the third argument of the task or used directly from the global object.

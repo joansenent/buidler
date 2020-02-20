@@ -153,41 +153,39 @@ export class Environment implements BuidlerRuntimeEnvironment {
     taskDefinition: TaskDefinition,
     taskArguments: TaskArguments
   ) {
-    let runSuperFunction: any;
+    const isOverridenTask = taskDefinition instanceof OverriddenTaskDefinition;
+    const { name: taskName } = taskDefinition;
 
-    if (taskDefinition instanceof OverriddenTaskDefinition) {
-      runSuperFunction = async (
-        _taskArguments: TaskArguments = taskArguments
-      ) => {
-        log("Running %s's super", taskDefinition.name);
-
-        return this._runTaskDefinition(
-          taskDefinition.parentTaskDefinition,
-          _taskArguments
-        );
-      };
-
-      runSuperFunction.isDefined = true;
-    } else {
-      runSuperFunction = async () => {
+    const runSuperFunction: RunSuperFunction<TaskArguments> = async (
+      _taskArguments: TaskArguments = taskArguments
+    ) => {
+      if (!isOverridenTask) {
         throw new BuidlerError(ERRORS.TASK_DEFINITIONS.RUNSUPER_NOT_AVAILABLE, {
-          taskName: taskDefinition.name
+          taskName
         });
-      };
+      }
+      log("Running %s's super", taskName);
+      const {
+        parentTaskDefinition
+      } = taskDefinition as OverriddenTaskDefinition;
 
-      runSuperFunction.isDefined = false;
-    }
+      return this._runTaskDefinition(parentTaskDefinition, _taskArguments);
+    };
 
-    const runSuper: RunSuperFunction<TaskArguments> = runSuperFunction;
+    runSuperFunction.isDefined = isOverridenTask;
 
-    const globalAsAny = global as any;
-    const previousRunSuper: any = globalAsAny.runSuper;
-    globalAsAny.runSuper = runSuper;
+    const globalAsAny = (global as unknown) as {
+      runSuper: RunSuperFunction<TaskArguments>;
+    };
+
+    const previousRunSuper = globalAsAny.runSuper;
+    globalAsAny.runSuper = runSuperFunction;
 
     const uninjectFromGlobal = this.injectToGlobal();
 
     try {
-      return await taskDefinition.action(taskArguments, this, runSuper);
+      // here the task action is excuted. This is the actual logic (might be user defined).
+      return await taskDefinition.action(taskArguments, this, runSuperFunction);
     } finally {
       uninjectFromGlobal();
       globalAsAny.runSuper = previousRunSuper;

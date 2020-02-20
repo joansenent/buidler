@@ -32,6 +32,11 @@ export class TasksDSL {
     description?: string,
     action?: ActionType<ArgsT>
   ): TaskDefinition;
+  public task<ArgsT extends TaskArguments>(
+    name: string,
+    description?: string,
+    action?: ActionType<ArgsT>
+  ): TaskDefinition;
 
   /**
    * Creates a task without description, overrdining any previous task
